@@ -13,7 +13,7 @@ const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 const HomeStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
+  <Stack.Navigator id={undefined} screenOptions={{ headerShown: false }}>
     <Stack.Screen name="HomeScreen" component={HomePage} />
     <Stack.Screen name="Interview" component={InterviewPage} />
     <Stack.Screen name="PreInterview" component={PreInterviewPage} />
@@ -24,7 +24,7 @@ export default function AppNavigator() {
   const { colors } = useTheme();
 
   return (
-    <Tab.Navigator
+    <Tab.Navigator id={undefined}
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
@@ -33,8 +33,8 @@ export default function AppNavigator() {
             iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'Profile') {
             iconName = focused ? 'person' : 'person-outline';
-          } else if (route.name === 'Settings') {
-            iconName = focused ? 'settings' : 'settings-outline';
+          } else if (route.name === 'Extra') {
+            iconName = focused ? 'bookmarks' : 'bookmarks-outline';
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -47,7 +47,7 @@ export default function AppNavigator() {
     >
       <Tab.Screen name="Home" component={HomeStack} />
       <Tab.Screen name="Profile" component={ProfilePage} />
-      <Tab.Screen name="Settings" component={SettingsPage} />
+      <Tab.Screen name="Extra" component={SettingsPage} />
     </Tab.Navigator>
   );
 }

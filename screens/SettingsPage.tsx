@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Switch, ScrollView, Linking, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, Switch, ScrollView, Linking, TouchableOpacity, Image, Platform } from 'react-native';
 import { useTheme } from '../components/ThemeProvider';
 import { Card } from '../components/Card';
+// Conditionally import based on platform
 import YoutubePlayer from 'react-native-youtube-iframe';
+// You would need to install this for web
+import YouTube from 'react-youtube';
 
 export default function SettingsPage() {
   const { colors, toggleTheme } = useTheme();
@@ -28,17 +31,43 @@ export default function SettingsPage() {
     </TouchableOpacity>
   );
 
-  const Video = ({ title, channel, videoId }) => (
-    <View style={styles.videoContainer}>
-      <YoutubePlayer
-        height={200}
-        play={false}
-        videoId={videoId}
-      />
-      <Text style={[styles.videoTitle, {color:colors.text}]}>{title}</Text>
-      <Text style={[styles.videoChannel, {color:colors.text}]}>{channel}</Text>
-    </View>
-  );
+  const Video = ({ title, channel, videoId }) => {
+    const { colors } = useTheme();
+    
+    // Check if we're running on web
+    if (Platform.OS === 'web') {
+      return (
+        <View style={styles.videoContainer}>
+          <YouTube
+            videoId={videoId}
+            opts={{
+              height: '200',
+              width: '100%',
+              playerVars: {
+                // https://developers.google.com/youtube/player_parameters
+                autoplay: 0,
+              },
+            }}
+          />
+          <Text style={[styles.videoTitle, {color: colors.text}]}>{title}</Text>
+          <Text style={[styles.videoChannel, {color: colors.text}]}>{channel}</Text>
+        </View>
+      );
+    }
+    
+    // For mobile platforms
+    return (
+      <View style={styles.videoContainer}>
+        <YoutubePlayer
+          height={200}
+          play={false}
+          videoId={videoId}
+        />
+        <Text style={[styles.videoTitle, {color: colors.text}]}>{title}</Text>
+        <Text style={[styles.videoChannel, {color: colors.text}]}>{channel}</Text>
+      </View>
+    );
+  };
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
