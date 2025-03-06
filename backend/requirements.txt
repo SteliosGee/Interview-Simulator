@@ -1,0 +1,3 @@
+ollama==0.4.6
+
+#https://ollama.com/download/windows to download the windows version for ollama
