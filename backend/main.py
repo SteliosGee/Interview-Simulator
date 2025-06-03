@@ -67,10 +67,12 @@ def process_chat():
     rating_message = None
     
     if rating_needed:
-        # Request rating
+        # Request rating with specific format guidance for easier parsing
+        # Fix the string concatenation issue by using proper concatenation or format string
         conversation_history.append({
             'role': 'user',
-            'content': 'Please rate my performance now.'
+            'content': 'Please rate my performance now. Include a clear percentage score like this: "Your score is X%" ' + 
+                      'Also mention percentage score for technical skills, communication skills, and overall satisfaction'
         })
         
         rating_response = chat(model='llama3.2:1b', messages=conversation_history)
