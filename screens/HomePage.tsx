@@ -30,7 +30,7 @@ export default function HomePage({ navigation }) {
           Practice your interview skills with our AI-powered simulator
         </Text>
         <View style={styles.heroButton}>
-          <Button title="Start Simulation" onPress={() => navigation.navigate('PreInterview')} />
+          <Button title="Start Simulation" onPress={() => navigation.navigate('Interview')} />
         </View>
       </View>
 

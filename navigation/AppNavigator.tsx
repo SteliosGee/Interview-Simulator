@@ -4,7 +4,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import HomePage from '../screens/HomePage';
 import InterviewPage from '../screens/InterviewPage';
-import PreInterviewPage from '../screens/PreInterviewPage';
 import ProfilePage from '../screens/ProfilePage';
 import SettingsPage from '../screens/SettingsPage';
 import { useTheme } from '../components/ThemeProvider';
@@ -16,7 +15,6 @@ const HomeStack = () => (
   <Stack.Navigator id={undefined} screenOptions={{ headerShown: false }}>
     <Stack.Screen name="HomeScreen" component={HomePage} />
     <Stack.Screen name="Interview" component={InterviewPage} />
-    <Stack.Screen name="PreInterview" component={PreInterviewPage} />
   </Stack.Navigator>
 );
 
