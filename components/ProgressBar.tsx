@@ -1,18 +1,36 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Animated } from 'react-native';
 import { useTheme } from './ThemeProvider';
 
-export const ProgressBar = ({ progress }) => {
+export const ProgressBar = ({ progress, height = 8, animated = true, style }) => {
   const { colors } = useTheme();
+  const [progressAnim] = React.useState(new Animated.Value(0));
+
+  React.useEffect(() => {
+    if (animated) {
+      Animated.timing(progressAnim, {
+        toValue: progress,
+        duration: 500,
+        useNativeDriver: false,
+      }).start();
+    }
+  }, [progress, animated]);
+
+  const progressWidth = animated ? progressAnim : progress;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.card }]}>
-      <View 
+    <View style={[styles.container, { height, backgroundColor: colors.textMuted + '30' }, style]}>
+      <Animated.View 
         style={[
           styles.bar, 
           { 
-            backgroundColor: colors.primary,
-            width: `${progress * 100}%`,
+            backgroundColor: getProgressColor(progress * 100, colors),
+            height,
+            width: progressWidth.interpolate ? 
+              progressWidth.interpolate({
+                inputRange: [0, 1],
+                outputRange: ['0%', '100%'],
+              }) : `${progress * 100}%`,
           }
         ]} 
       />
@@ -20,16 +38,23 @@ export const ProgressBar = ({ progress }) => {
   );
 };
 
+const getProgressColor = (percentage, colors) => {
+  if (percentage >= 80) return '#4CAF50'; // Green
+  if (percentage >= 60) return '#FF9800'; // Orange
+  if (percentage >= 40) return '#FFC107'; // Yellow
+  return '#F44336'; // Red
+};
+
 const styles = StyleSheet.create({
   container: {
-    height: 10,
-    borderRadius: 5,
+    borderRadius: 10,
     flex: 1,
     marginHorizontal: 10,
+    overflow: 'hidden',
   },
   bar: {
-    height: '100%',
-    borderRadius: 5,
+    borderRadius: 10,
+    minWidth: 2,
   },
 });
 

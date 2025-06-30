@@ -203,7 +203,7 @@ export default function ProfilePage() {
                 {skill}
               </Text>
               <View style={styles.progressContainer}>
-                <ProgressBar progress={level / 100} />
+                <ProgressBar progress={level / 100} style={{ flex: 1 }} />
                 <Text style={[styles.skillLevel, { color: colors.textMuted }]}>
                   {level}%
                 </Text>
@@ -223,7 +223,7 @@ export default function ProfilePage() {
                 {skill}
               </Text>
               <View style={styles.progressContainer}>
-                <ProgressBar progress={level / 100} />
+                <ProgressBar progress={level / 100} style={{ flex: 1 }} />
                 <Text style={[styles.skillLevel, { color: colors.textMuted }]}>
                   {level}%
                 </Text>

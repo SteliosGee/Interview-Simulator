@@ -339,6 +339,8 @@ export default function InterviewPage({ navigation, route }) {
           <Button
             title={isLoading ? "Connecting..." : "Begin Interview"}
             onPress={startInterview}
+            style={{}}
+            textStyle={{}}
           />
         </View>
       ) : (
@@ -448,6 +450,8 @@ export default function InterviewPage({ navigation, route }) {
                 <Button
                   title="End Interview & View Profile"
                   onPress={endInterview}
+                  style={{}}
+                  textStyle={{}}
                 />
               </View>
             )}
