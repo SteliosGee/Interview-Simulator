@@ -38,6 +38,13 @@ export default function InterviewPage({ navigation, route }) {
     communicationScore
   ) => {
     try {
+      console.log("storeInterviewResults called with:", {
+        passed,
+        overallScore,
+        technicalScore,
+        communicationScore
+      }); // Debug log
+      
       const existingDataJSON = await AsyncStorage.getItem("interviewStats");
       let stats = existingDataJSON
         ? JSON.parse(existingDataJSON)
@@ -100,22 +107,25 @@ export default function InterviewPage({ navigation, route }) {
       const devField = route.params?.devField || "Frontend";
 
       // Update softSkills using the communication score
+      // Technical interviews also assess communication skills, so always update soft skills
+      stats.softSkills["Communication"] = Math.min(
+        100,
+        Math.round(
+          (stats.softSkills["Communication"] + communicationScore) / 2
+        )
+      );
+      stats.softSkills["Problem Solving"] = Math.min(
+        100,
+        Math.round(
+          (stats.softSkills["Problem Solving"] + overallScore * 0.4) / 2
+        )
+      );
+      
+      // For behavioral or mixed interviews, update additional soft skills
       if (
         interviewType === "Behavioral" ||
         interviewType === "Technical & Behavioral"
       ) {
-        stats.softSkills["Communication"] = Math.min(
-          100,
-          Math.round(
-            (stats.softSkills["Communication"] + communicationScore) / 2
-          )
-        );
-        stats.softSkills["Problem Solving"] = Math.min(
-          100,
-          Math.round(
-            (stats.softSkills["Problem Solving"] + overallScore * 0.4) / 2
-          )
-        );
         stats.softSkills["Teamwork and Collaboration"] = Math.min(
           100,
           Math.round(
@@ -138,7 +148,29 @@ export default function InterviewPage({ navigation, route }) {
               2
           )
         );
+      } else {
+        // For technical interviews, still update some soft skills based on overall performance
+        stats.softSkills["Teamwork and Collaboration"] = Math.min(
+          100,
+          Math.round(
+            (stats.softSkills["Teamwork and Collaboration"] + overallScore * 0.2) / 2
+          )
+        );
+        stats.softSkills["Adaptability"] = Math.min(
+          100,
+          Math.round(
+            (stats.softSkills["Adaptability"] + overallScore * 0.2) / 2
+          )
+        );
+        stats.softSkills["Emotional Intelligence"] = Math.min(
+          100,
+          Math.round(
+            (stats.softSkills["Emotional Intelligence"] + communicationScore * 0.3) / 2
+          )
+        );
       }
+
+      console.log("Updated soft skills:", stats.softSkills); // Debug log
 
       // Update hardSkills using the technical score
       if (
@@ -195,6 +227,7 @@ export default function InterviewPage({ navigation, route }) {
 
       // Store the updated statistics
       await AsyncStorage.setItem("interviewStats", JSON.stringify(stats));
+      console.log("Interview stats saved successfully:", stats); // Debug log
     } catch (error) {
       console.error("Error storing interview results:", error);
     }
@@ -204,33 +237,61 @@ export default function InterviewPage({ navigation, route }) {
   const extractScores = (responseText) => {
     // Default scores in case we can't parse them
     let scores = {
-      technical: 60,
+      technical: 65,
       communication: 70,
-      overall: 70,
+      overall: 68,
     };
 
     try {
-      // Extract overall score
-      const overallMatch = responseText.match(
-        /Your score is (\d+)%|Overall (?:Score|Satisfaction):\s*(\d+)%/i
-      );
-      if (overallMatch) {
-        scores.overall = parseInt(overallMatch[1] || overallMatch[2], 10);
+      console.log("Extracting scores from:", responseText); // Debug log
+      
+      // Extract overall score - try multiple patterns
+      const overallPatterns = [
+        /Overall Score:\s*(\d+)%/i,
+        /Your score is (\d+)%/i,
+        /Overall:\s*(\d+)%/i,
+        /Total Score:\s*(\d+)%/i
+      ];
+      
+      for (const pattern of overallPatterns) {
+        const match = responseText.match(pattern);
+        if (match) {
+          scores.overall = parseInt(match[1], 10);
+          break;
+        }
       }
 
       // Extract technical score
-      const technicalMatch = responseText.match(/Technical Skills:\s*(\d+)%/i);
-      if (technicalMatch) {
-        scores.technical = parseInt(technicalMatch[1], 10);
+      const technicalPatterns = [
+        /Technical Skills:\s*(\d+)%/i,
+        /Technical:\s*(\d+)%/i,
+        /Technical Score:\s*(\d+)%/i
+      ];
+      
+      for (const pattern of technicalPatterns) {
+        const match = responseText.match(pattern);
+        if (match) {
+          scores.technical = parseInt(match[1], 10);
+          break;
+        }
       }
 
       // Extract communication score
-      const communicationMatch = responseText.match(
-        /Communication Skills:\s*(\d+)%/i
-      );
-      if (communicationMatch) {
-        scores.communication = parseInt(communicationMatch[1], 10);
+      const communicationPatterns = [
+        /Communication Skills:\s*(\d+)%/i,
+        /Communication:\s*(\d+)%/i,
+        /Communication Score:\s*(\d+)%/i
+      ];
+      
+      for (const pattern of communicationPatterns) {
+        const match = responseText.match(pattern);
+        if (match) {
+          scores.communication = parseInt(match[1], 10);
+          break;
+        }
       }
+      
+      console.log("Extracted scores:", scores); // Debug log
     } catch (error) {
       console.error("Error parsing scores:", error);
     }
@@ -296,6 +357,13 @@ export default function InterviewPage({ navigation, route }) {
           // Extract scores from the rating text
           const scores = extractScores(data.rating);
           const passed = scores.overall >= 70;
+
+          console.log("Storing interview results:", {
+            passed,
+            scores,
+            interviewType: route.params?.interviewType || "Technical",
+            devField: route.params?.devField || "Frontend"
+          }); // Debug log
 
           await storeInterviewResults(
             passed,
