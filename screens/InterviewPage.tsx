@@ -254,15 +254,20 @@ export default function InterviewPage({ navigation, route }) {
       // Extract overall score - try multiple patterns
       const overallPatterns = [
         /Overall Score:\s*(\d+)%/i,
-        /Your score is (\d+)%/i,
         /Overall:\s*(\d+)%/i,
-        /Total Score:\s*(\d+)%/i
+        /Your score is (\d+)%/i,
+        /Total Score:\s*(\d+)%/i,
+        /Final Score:\s*(\d+)%/i,
+        /Score:\s*(\d+)%/i,
+        /(\d+)%\s*overall/i,
+        /overall.*?(\d+)%/i
       ];
       
       for (const pattern of overallPatterns) {
         const match = responseText.match(pattern);
         if (match) {
           scores.overall = parseInt(match[1], 10);
+          console.log("Found overall score:", scores.overall); // Debug log
           break;
         }
       }
@@ -271,13 +276,15 @@ export default function InterviewPage({ navigation, route }) {
       const technicalPatterns = [
         /Technical Skills:\s*(\d+)%/i,
         /Technical:\s*(\d+)%/i,
-        /Technical Score:\s*(\d+)%/i
+        /Technical Score:\s*(\d+)%/i,
+        /Technical.*?(\d+)%/i
       ];
       
       for (const pattern of technicalPatterns) {
         const match = responseText.match(pattern);
         if (match) {
           scores.technical = parseInt(match[1], 10);
+          console.log("Found technical score:", scores.technical); // Debug log
           break;
         }
       }
@@ -286,18 +293,33 @@ export default function InterviewPage({ navigation, route }) {
       const communicationPatterns = [
         /Communication Skills:\s*(\d+)%/i,
         /Communication:\s*(\d+)%/i,
-        /Communication Score:\s*(\d+)%/i
+        /Communication Score:\s*(\d+)%/i,
+        /Communication.*?(\d+)%/i
       ];
       
       for (const pattern of communicationPatterns) {
         const match = responseText.match(pattern);
         if (match) {
           scores.communication = parseInt(match[1], 10);
+          console.log("Found communication score:", scores.communication); // Debug log
           break;
         }
       }
       
-      console.log("Extracted scores:", scores); // Debug log
+      console.log("Final extracted scores:", scores); // Debug log
+      
+      // If we still have default scores, try to extract any percentage as overall score
+      if (scores.overall === 68) {
+        const anyPercentage = responseText.match(/(\d+)%/);
+        if (anyPercentage) {
+          const potentialScore = parseInt(anyPercentage[1], 10);
+          if (potentialScore >= 0 && potentialScore <= 100) {
+            scores.overall = potentialScore;
+            console.log("Using first found percentage as overall score:", scores.overall); // Debug log
+          }
+        }
+      }
+      
     } catch (error) {
       console.error("Error parsing scores:", error);
     }
@@ -364,9 +386,12 @@ export default function InterviewPage({ navigation, route }) {
           const scores = extractScores(data.rating);
           const passed = scores.overall >= 70;
 
+          console.log("AI Rating Text:", data.rating); // Debug log
           console.log("Storing interview results:", {
             passed,
             scores,
+            passThreshold: 70,
+            actualOverallScore: scores.overall,
             interviewType: route.params?.interviewType || "Technical",
             devField: route.params?.devField || "Frontend"
           }); // Debug log

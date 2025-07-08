@@ -29,7 +29,7 @@ export default function ProfilePage() {
       "System Design": 0,
     },
     achievements: ["New User"],
-    performanceHistory: [0],
+    performanceHistory: [],
   });
 
   // Load stats when profile page is focused
@@ -62,7 +62,7 @@ export default function ProfilePage() {
                 "System Design": 0,
               },
               achievements: ["New User"],
-              performanceHistory: parsedStats.performanceHistory || [0],
+              performanceHistory: parsedStats.performanceHistory || [],
             };
 
             // Calculate average score
@@ -71,10 +71,13 @@ export default function ProfilePage() {
               safeStats.performanceHistory &&
               safeStats.performanceHistory.length > 0
             ) {
-              avgScore = Math.round(
-                safeStats.performanceHistory.reduce((a, b) => a + b, 0) /
-                  safeStats.performanceHistory.length
-              );
+              // Filter out any initial zero values that might be placeholders
+              const validScores = safeStats.performanceHistory.filter(score => score > 0);
+              if (validScores.length > 0) {
+                avgScore = Math.round(
+                  validScores.reduce((a, b) => a + b, 0) / validScores.length
+                );
+              }
             }
             safeStats.averageScore = avgScore;
 
@@ -176,12 +179,12 @@ export default function ProfilePage() {
           <View style={styles.chartContainer}>
             <LineChart
               data={{
-                labels: stats.performanceHistory && stats.performanceHistory.length > 1 
+                labels: stats.performanceHistory && stats.performanceHistory.length > 0 
                   ? stats.performanceHistory.map((_, index) => `${index + 1}`)
                   : ["1", "2", "3", "4", "5"],
                 datasets: [
                   {
-                    data: stats.performanceHistory && stats.performanceHistory.length > 1 
+                    data: stats.performanceHistory && stats.performanceHistory.length > 0 
                       ? stats.performanceHistory
                       : [0, 0, 0, 0, 0],
                     color: (opacity = 1) => `rgba(46, 125, 50, ${opacity})`,
