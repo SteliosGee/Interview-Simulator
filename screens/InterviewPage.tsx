@@ -768,20 +768,21 @@ const styles = StyleSheet.create({
   },
   messageContainer: {
     flexDirection: "row",
-
     alignItems: "center",
-
     marginBottom: 10,
+    width: "100%",
   },
-
   userContainer: {
     alignSelf: "flex-end",
-
     flexDirection: "row",
+    width: "100%",
+    justifyContent: "flex-end",
   },
-
   botContainer: {
     alignSelf: "flex-start",
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "flex-start",
   },
   recordingIndicator: {
     position: 'absolute',
