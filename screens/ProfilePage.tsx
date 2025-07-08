@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { useTheme } from "../components/ThemeProvider";
 import { Card } from "../components/Card";
 import { ProgressBar } from "../components/ProgressBar";
-import { LineChart } from "react-native-chart-kit";
+import { LineChart, BarChart } from "react-native-chart-kit";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -169,27 +169,134 @@ export default function ProfilePage() {
         <Text style={[styles.cardTitle, { color: colors.text }]}>
           Performance History
         </Text>
-        <LineChart
-          data={{
-            labels: ["1", "2", "3", "4", "5", "6", "7"],
-            datasets: [
-              {
-                data: stats.performanceHistory || [0],
-              },
-            ],
-          }}
-          width={300}
-          height={200}
-          chartConfig={chartConfig}
-          bezier
-          style={styles.chart}
-          withDots={false}
-          withInnerLines={false}
-          withOuterLines={false}
-          withVerticalLabels={true}
-          withHorizontalLabels={true}
-          fromZero={true}
-        />
+        
+        {/* Performance Content - Horizontal Layout */}
+        <View style={styles.performanceContent}>
+          {/* Left Side - Line Chart */}
+          <View style={styles.chartContainer}>
+            <LineChart
+              data={{
+                labels: stats.performanceHistory && stats.performanceHistory.length > 1 
+                  ? stats.performanceHistory.map((_, index) => `${index + 1}`)
+                  : ["1", "2", "3", "4", "5"],
+                datasets: [
+                  {
+                    data: stats.performanceHistory && stats.performanceHistory.length > 1 
+                      ? stats.performanceHistory
+                      : [0, 0, 0, 0, 0],
+                    color: (opacity = 1) => `rgba(46, 125, 50, ${opacity})`,
+                    strokeWidth: 3,
+                  },
+                ],
+              }}
+              width={250}
+              height={180}
+              chartConfig={chartConfig}
+              bezier
+              style={styles.chart}
+              withDots={true}
+              withInnerLines={true}
+              withOuterLines={true}
+              withVerticalLabels={true}
+              withHorizontalLabels={true}
+              fromZero={true}
+              segments={4}
+              yAxisSuffix="%"
+            />
+          </View>
+
+          {/* Middle - Bar Chart */}
+          <View style={styles.chartContainer}>
+            <BarChart
+              data={{
+                labels: ["Pass", "Fail"],
+                datasets: [
+                  {
+                    data: [
+                      stats.passedInterviews || 0,
+                      stats.failedInterviews || 0,
+                    ],
+                  },
+                ],
+              }}
+              width={250}
+              height={180}
+              yAxisLabel=""
+              yAxisSuffix=""
+              chartConfig={{
+                ...chartConfig,
+                color: (opacity = 1) => `rgba(54, 162, 235, ${opacity})`,
+              }}
+              style={styles.chart}
+              withHorizontalLabels={true}
+              withVerticalLabels={true}
+              fromZero={true}
+              showValuesOnTopOfBars={true}
+            />
+          </View>
+
+          {/* Right Side - Stats and Insights */}
+          <View style={styles.statsAndInsights}>
+            {/* Quick Stats */}
+            <View style={styles.quickStats}>
+              <View style={styles.quickStatItem}>
+                <Text style={[styles.quickStatValue, { color: colors.primary }]}>
+                  {stats.performanceHistory && stats.performanceHistory.length > 0 
+                    ? Math.max(...stats.performanceHistory) 
+                    : 0}%
+                </Text>
+                <Text style={[styles.quickStatLabel, { color: colors.textMuted }]}>
+                  Best Score
+                </Text>
+              </View>
+              
+              <View style={styles.quickStatItem}>
+                <Text style={[styles.quickStatValue, { color: colors.text }]}>
+                  {stats.passedInterviews > 0 
+                    ? Math.round((stats.passedInterviews / stats.totalInterviews) * 100)
+                    : 0}%
+                </Text>
+                <Text style={[styles.quickStatLabel, { color: colors.textMuted }]}>
+                  Success Rate
+                </Text>
+              </View>
+            </View>
+
+            {/* Trend Indicator */}
+            <View style={styles.trendIndicator}>
+              <Text style={[styles.trendLabel, { color: colors.textMuted }]}>
+                Recent Trend:
+              </Text>
+              <Text style={[styles.trendValue, { 
+                color: stats.performanceHistory && stats.performanceHistory.length >= 2 
+                  ? (stats.performanceHistory[stats.performanceHistory.length - 1] >= 
+                     stats.performanceHistory[stats.performanceHistory.length - 2] 
+                     ? 'green' : 'red')
+                  : colors.text 
+              }]}>
+                {stats.performanceHistory && stats.performanceHistory.length >= 2 
+                  ? (stats.performanceHistory[stats.performanceHistory.length - 1] >= 
+                     stats.performanceHistory[stats.performanceHistory.length - 2] 
+                     ? '↗ Improving' : '↘ Declining')
+                  : '→ Stable'}
+              </Text>
+            </View>
+
+            {/* Key Insight */}
+            <View style={styles.keyInsight}>
+              <Text style={[styles.insightTitle, { color: colors.text }]}>
+                Key Insight
+              </Text>
+              <Text style={[styles.insightText, { color: colors.textMuted }]}>
+                {stats.averageScore >= 80 
+                  ? `Excellent performance! Keep it up!`
+                  : stats.totalInterviews >= 3
+                  ? `Practice more to improve consistency`
+                  : `Complete more interviews to track progress`}
+              </Text>
+            </View>
+          </View>
+        </View>
       </Card>
 
       <Card style={styles.card}>
@@ -270,4 +377,68 @@ const styles = StyleSheet.create({
   badgeContainer: { flexDirection: "row", flexWrap: "wrap" },
   badge: { margin: 5, padding: 5, borderRadius: 5 },
   badgeText: { fontSize: 14 },
+  
+  // Performance History Styles - Horizontal Layout
+  performanceContent: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+  },
+  chartContainer: {
+    flex: 1.2,
+    alignItems: "center",
+  },
+  statsAndInsights: {
+    flex: 0.8,
+    paddingLeft: 8,
+  },
+  quickStats: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 15,
+  },
+  quickStatItem: {
+    alignItems: "center",
+    flex: 1,
+  },
+  quickStatValue: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  quickStatLabel: {
+    fontSize: 12,
+    textAlign: "center",
+  },
+  trendIndicator: {
+    marginBottom: 15,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 8,
+  },
+  trendLabel: {
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  trendValue: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  keyInsight: {
+    padding: 12,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#007bff",
+  },
+  insightTitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 6,
+  },
+  insightText: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
 });
