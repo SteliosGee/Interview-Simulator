@@ -8,12 +8,15 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Image,
+  Platform,
+  Alert,
 } from "react-native";
 import { useTheme } from "../components/ThemeProvider";
 import { Button } from "../components/Button";
 import { Card } from "../components/Card";
 import Icon from "react-native-vector-icons/FontAwesome";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Voice from '@react-native-voice/voice';
 
 // Define API URL
 const API_URL = "http://localhost:5000/api"; // Change this to your Python server address
@@ -27,6 +30,9 @@ export default function InterviewPage({ navigation, route }) {
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const [conversationHistory, setConversationHistory] = useState([]);
   const [questionCount, setQuestionCount] = useState(0);
+  const [isRecording, setIsRecording] = useState(false);
+  const [speechRecognitionResults, setSpeechRecognitionResults] = useState([]);
+  const [speechRecognitionError, setSpeechRecognitionError] = useState('');
 
   const userProfilePic = "https://i.pravatar.cc/150?img=11"; // Placeholder user image
   const aiProfilePic = "https://i.pravatar.cc/150?img=12"; // Placeholder AI image
@@ -393,6 +399,119 @@ export default function InterviewPage({ navigation, route }) {
     navigation.navigate("Profile");
   };
 
+  // Voice recognition setup
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      Voice.onSpeechStart = onSpeechStart;
+      Voice.onSpeechRecognized = onSpeechRecognized;
+      Voice.onSpeechEnd = onSpeechEnd;
+      Voice.onSpeechError = onSpeechError;
+      Voice.onSpeechResults = onSpeechResults;
+      Voice.onSpeechPartialResults = onSpeechPartialResults;
+    }
+
+    return () => {
+      if (Platform.OS !== 'web') {
+        Voice.destroy().then(Voice.removeAllListeners);
+      }
+    };
+  }, []);
+
+  const onSpeechStart = () => {
+    setSpeechRecognitionError('');
+  };
+
+  const onSpeechRecognized = () => {
+    setIsRecording(true);
+  };
+
+  const onSpeechEnd = () => {
+    setIsRecording(false);
+  };
+
+  const onSpeechError = (error) => {
+    setSpeechRecognitionError(error.error);
+    setIsRecording(false);
+  };
+
+  const onSpeechResults = (results) => {
+    setSpeechRecognitionResults(results.value);
+    if (results.value && results.value.length > 0) {
+      setInput(results.value[0]);
+    }
+  };
+
+  const onSpeechPartialResults = (results) => {
+    setSpeechRecognitionResults(results.value);
+  };
+
+  const startRecording = async () => {
+    if (Platform.OS === 'web') {
+      // Web Speech API implementation
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+        
+        recognition.onstart = () => {
+          setIsRecording(true);
+          setSpeechRecognitionError('');
+        };
+        
+        recognition.onresult = (event: any) => {
+          const transcript = event.results[0][0].transcript;
+          setInput(transcript);
+          setIsRecording(false);
+        };
+        
+        recognition.onerror = (event: any) => {
+          setSpeechRecognitionError(event.error);
+          setIsRecording(false);
+        };
+        
+        recognition.onend = () => {
+          setIsRecording(false);
+        };
+        
+        recognition.start();
+      } else {
+        Alert.alert('Error', 'Speech recognition not supported in this browser');
+      }
+    } else {
+      // Native implementation
+      try {
+        await Voice.start('en-US');
+        setIsRecording(true);
+      } catch (error) {
+        setSpeechRecognitionError((error as Error).message);
+      }
+    }
+  };
+
+  const stopRecording = async () => {
+    if (Platform.OS === 'web') {
+      setIsRecording(false);
+    } else {
+      try {
+        await Voice.stop();
+        setIsRecording(false);
+      } catch (error) {
+        setSpeechRecognitionError((error as Error).message);
+      }
+    }
+  };
+
+  const handleMicrophonePress = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {!interviewStarted ? (
@@ -479,23 +598,44 @@ export default function InterviewPage({ navigation, route }) {
             )}
           </ScrollView>
           <View style={styles.inputContainer}>
+            {isRecording && (
+              <View style={styles.recordingIndicator}>
+                <Text style={[styles.recordingText, { color: colors.primary }]}>
+                  🎤 Recording... Tap stop when done
+                </Text>
+              </View>
+            )}
             <TextInput
               style={[
                 styles.input,
-                { backgroundColor: colors.card, color: colors.text },
+                { 
+                  backgroundColor: colors.card, 
+                  color: colors.text,
+                  borderColor: isRecording ? colors.primary : 'transparent',
+                  borderWidth: isRecording ? 2 : 0,
+                },
               ]}
               value={input}
               onChangeText={setInput}
-              placeholder="Type your response..."
+              placeholder={isRecording ? "Listening..." : "Type your response or use voice input..."}
               placeholderTextColor={colors.textMuted}
               multiline
-              editable={!isLoading}
+              editable={!isLoading && !isRecording}
             />
             <TouchableOpacity
-              onPress={() => setInput("")}
-              style={styles.micIcon}
+              onPress={handleMicrophonePress}
+              style={[
+                styles.micIcon,
+                {
+                  backgroundColor: isRecording ? '#ff4444' : colors.primary,
+                }
+              ]}
             >
-              <Icon name="microphone" size={24} color="white" />
+              <Icon 
+                name={isRecording ? "stop" : "microphone"} 
+                size={24} 
+                color="white" 
+              />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleSend}
@@ -616,5 +756,20 @@ const styles = StyleSheet.create({
 
   botContainer: {
     alignSelf: "flex-start",
+  },
+  recordingIndicator: {
+    position: 'absolute',
+    top: -30,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    padding: 5,
+    borderRadius: 10,
+    zIndex: 1000,
+  },
+  recordingText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });

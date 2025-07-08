@@ -10,6 +10,7 @@ import YouTube from 'react-youtube';
 export default function SettingsPage() {
   const { colors, toggleTheme } = useTheme();
   const [darkMode, setDarkMode] = useState(false);
+  const [voiceInput, setVoiceInput] = useState(true);
 
   const Section = ({ title, content }) => (
     <Card style={[styles.section, { backgroundColor: colors.card }]}>
@@ -80,6 +81,13 @@ export default function SettingsPage() {
               setDarkMode(value);
               toggleTheme();
             }}
+          />
+        </View>
+        <View style={styles.setting}>
+          <Text style={[styles.settingText, { color: colors.text }]}>Voice Input</Text>
+          <Switch 
+            value={voiceInput} 
+            onValueChange={setVoiceInput}
           />
         </View>
       </Card>
