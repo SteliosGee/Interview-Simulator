@@ -41,14 +41,16 @@ export default function InterviewPage({ navigation, route }) {
     passed,
     overallScore,
     technicalScore,
-    communicationScore
+    communicationScore,
+    satisfactionScore = 70
   ) => {
     try {
       console.log("storeInterviewResults called with:", {
         passed,
         overallScore,
         technicalScore,
-        communicationScore
+        communicationScore,
+        satisfactionScore
       }); // Debug log
       
       const existingDataJSON = await AsyncStorage.getItem("interviewStats");
@@ -246,37 +248,18 @@ export default function InterviewPage({ navigation, route }) {
       technical: 65,
       communication: 70,
       overall: 68,
+      satisfaction: 70, // Add satisfaction score
     };
 
     try {
       console.log("Extracting scores from:", responseText); // Debug log
-      
-      // Extract overall score - try multiple patterns
-      const overallPatterns = [
-        /Overall Score:\s*(\d+)%/i,
-        /Overall:\s*(\d+)%/i,
-        /Your score is (\d+)%/i,
-        /Total Score:\s*(\d+)%/i,
-        /Final Score:\s*(\d+)%/i,
-        /Score:\s*(\d+)%/i,
-        /(\d+)%\s*overall/i,
-        /overall.*?(\d+)%/i
-      ];
-      
-      for (const pattern of overallPatterns) {
-        const match = responseText.match(pattern);
-        if (match) {
-          scores.overall = parseInt(match[1], 10);
-          console.log("Found overall score:", scores.overall); // Debug log
-          break;
-        }
-      }
 
       // Extract technical score
       const technicalPatterns = [
         /Technical Skills:\s*(\d+)%/i,
         /Technical:\s*(\d+)%/i,
         /Technical Score:\s*(\d+)%/i,
+        /Your technical skills:\s*(\d+)%/i,
         /Technical.*?(\d+)%/i
       ];
       
@@ -294,6 +277,7 @@ export default function InterviewPage({ navigation, route }) {
         /Communication Skills:\s*(\d+)%/i,
         /Communication:\s*(\d+)%/i,
         /Communication Score:\s*(\d+)%/i,
+        /Your communication skills:\s*(\d+)%/i,
         /Communication.*?(\d+)%/i
       ];
       
@@ -305,20 +289,29 @@ export default function InterviewPage({ navigation, route }) {
           break;
         }
       }
+
+      // Extract satisfaction score
+      const satisfactionPatterns = [
+        /Overall satisfaction:\s*(\d+)%/i,
+        /Your overall satisfaction:\s*(\d+)%/i,
+        /Satisfaction:\s*(\d+)%/i,
+        /Overall.*satisfaction.*?(\d+)%/i
+      ];
       
-      console.log("Final extracted scores:", scores); // Debug log
-      
-      // If we still have default scores, try to extract any percentage as overall score
-      if (scores.overall === 68) {
-        const anyPercentage = responseText.match(/(\d+)%/);
-        if (anyPercentage) {
-          const potentialScore = parseInt(anyPercentage[1], 10);
-          if (potentialScore >= 0 && potentialScore <= 100) {
-            scores.overall = potentialScore;
-            console.log("Using first found percentage as overall score:", scores.overall); // Debug log
-          }
+      for (const pattern of satisfactionPatterns) {
+        const match = responseText.match(pattern);
+        if (match) {
+          scores.satisfaction = parseInt(match[1], 10);
+          console.log("Found satisfaction score:", scores.satisfaction); // Debug log
+          break;
         }
       }
+      
+      // Calculate the actual overall score as the average of the three components
+      scores.overall = Math.round((scores.technical + scores.communication + scores.satisfaction) / 3);
+      
+      console.log("Calculated overall score:", scores.overall); // Debug log
+      console.log("Final extracted scores:", scores); // Debug log
       
     } catch (error) {
       console.error("Error parsing scores:", error);
@@ -400,7 +393,8 @@ export default function InterviewPage({ navigation, route }) {
             passed,
             scores.overall,
             scores.technical,
-            scores.communication
+            scores.communication,
+            scores.satisfaction
           );
         } else {
           setCurrentQuestion((prevQuestion) => prevQuestion + 1);

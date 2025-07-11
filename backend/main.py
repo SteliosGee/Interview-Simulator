@@ -3,6 +3,9 @@ from flask_cors import CORS
 from ollama import chat
 from ollama import ChatResponse
 import json
+from ollama import generate
+generate(model='gemma3:4b', prompt='Just warming up.')
+
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -26,7 +29,7 @@ def start_chat():
     })
     
     # Generate initial response
-    response = chat(model='llama3.2:1b', messages=conversation_history)
+    response = chat(model='gemma3:4b', messages=conversation_history)
     bot_message = {
         'role': 'assistant',
         'content': response['message']['content']
@@ -35,7 +38,7 @@ def start_chat():
     
     return jsonify({
         'message': bot_message['content'],
-        'conversation_id': '123'  # In a real app, generate unique IDs
+        'conversation_id': '123'
     })
 
 @app.route('/api/chat', methods=['POST'])
@@ -51,24 +54,12 @@ def process_chat():
         'content': user_message
     })
     
-    # Generate response
-    response = chat(model='llama3.2:1b', messages=conversation_history)
-    bot_message = {
-        'role': 'assistant',
-        'content': response['message']['content']
-    }
-    conversation_history.append(bot_message)
-    
     # Update question count
     question_count += 1
     
     # Check if we need performance rating
-    rating_needed = question_count >= 3
-    rating_message = None
-    
-    if rating_needed:
-        # Request rating with specific format guidance for easier parsing
-        # Fix the string concatenation issue by using proper concatenation or format string
+    if question_count >= 3:
+        # Request rating only - no regular response
         conversation_history.append({
             'role': 'user',
             'content': 'Please rate my performance now. Include a clear percentage score like this: "Your score is X%" ' + 
@@ -82,10 +73,25 @@ def process_chat():
         }
         conversation_history.append(rating_message)
         question_count = 0  # Reset counter
+        
+        return jsonify({
+            'message': None,
+            'rating': rating_message['content'],
+            'conversation_history': conversation_history,
+            'question_count': question_count
+        })
+    
+    # Generate regular response only if rating is not needed
+    response = chat(model='gemma3:4b', messages=conversation_history)
+    bot_message = {
+        'role': 'assistant',
+        'content': response['message']['content']
+    }
+    conversation_history.append(bot_message)
     
     return jsonify({
         'message': bot_message['content'],
-        'rating': rating_message['content'] if rating_message else None,
+        'rating': None,
         'conversation_history': conversation_history,
         'question_count': question_count
     })
