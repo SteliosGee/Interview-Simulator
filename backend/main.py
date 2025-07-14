@@ -4,7 +4,7 @@ from ollama import chat
 from ollama import ChatResponse
 import json
 from ollama import generate
-generate(model='gemma3:4b', prompt='Just warming up.')
+generate(model='llama3:8b', prompt='Just warming up.')
 
 
 app = Flask(__name__)
@@ -29,7 +29,7 @@ def start_chat():
     })
     
     # Generate initial response
-    response = chat(model='gemma3:4b', messages=conversation_history)
+    response = chat(model='llama3:8b', messages=conversation_history)
     bot_message = {
         'role': 'assistant',
         'content': response['message']['content']
@@ -58,15 +58,14 @@ def process_chat():
     question_count += 1
     
     # Check if we need performance rating
-    if question_count >= 3:
+    if question_count >= 5:
         # Request rating only - no regular response
         conversation_history.append({
             'role': 'user',
-            'content': 'Please rate my performance now. Include a clear percentage score like this: "Your score is X%" ' + 
-                      'Also mention percentage score for technical skills, communication skills, and overall satisfaction'
+            'content': 'The interview is now over. Please provide your final feedback and scores based on our entire conversation. Use the format specified in your instructions.'
         })
         
-        rating_response = chat(model='llama3.2:1b', messages=conversation_history)
+        rating_response = chat(model='llama3:8b', messages=conversation_history)
         rating_message = {
             'role': 'assistant',
             'content': rating_response['message']['content']
@@ -82,7 +81,7 @@ def process_chat():
         })
     
     # Generate regular response only if rating is not needed
-    response = chat(model='gemma3:4b', messages=conversation_history)
+    response = chat(model='llama3:8b', messages=conversation_history)
     bot_message = {
         'role': 'assistant',
         'content': response['message']['content']
