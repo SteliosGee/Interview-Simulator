@@ -2,12 +2,12 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
 import json
+from config import OPENROUTER_API_KEY
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # ==== OpenRouter Configuration ====
-OPENROUTER_API_KEY = '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'  # <-- Replace this with your actual key
 MODEL = 'meta-llama/llama-3-70b-instruct'  # Or any other model from OpenRouter
 
 HEADERS = {

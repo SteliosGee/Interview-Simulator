@@ -1,2 +1,4 @@
 /node_modules
 /.expo
+backend/config.py
+backend/__pycache__
