@@ -287,7 +287,7 @@ export default function ProfilePage() {
 
             {/* Key Insight */}
             <View style={styles.keyInsight}>
-              <Text style={[styles.insightTitle, { color: colors.text }]}>
+              <Text style={[styles.insightTitle, { color: colors.textMuted }]}>
                 Key Insight
               </Text>
               <Text style={[styles.insightText, { color: colors.textMuted }]}>
