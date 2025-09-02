@@ -18,8 +18,7 @@ import Icon from "react-native-vector-icons/FontAwesome";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Voice from '@react-native-voice/voice';
 
-// Define API URL
-const API_URL = "http://localhost:5000/api"; // Change this to your Python server address
+const API_URL = "http://localhost:5000/api";
 
 export default function InterviewPage({ navigation, route }) {
   const { colors } = useTheme();
@@ -34,8 +33,8 @@ export default function InterviewPage({ navigation, route }) {
   const [speechRecognitionResults, setSpeechRecognitionResults] = useState([]);
   const [speechRecognitionError, setSpeechRecognitionError] = useState('');
 
-  const userProfilePic = "https://i.pravatar.cc/150?img=11"; // Placeholder user image
-  const aiProfilePic = "https://i.pravatar.cc/150?img=12"; // Placeholder AI image
+  const userProfilePic = "https://i.pravatar.cc/150?img=11";
+  const aiProfilePic = "https://i.pravatar.cc/150?img=12";
 
   const storeInterviewResults = async (
     passed,
@@ -77,7 +76,6 @@ export default function InterviewPage({ navigation, route }) {
             },
           };
 
-      // Ensure required properties exist
       if (!stats.performanceHistory) stats.performanceHistory = [];
       if (!stats.softSkills) {
         stats.softSkills = {
@@ -241,14 +239,13 @@ export default function InterviewPage({ navigation, route }) {
     }
   };
 
-  // Add this function to extract scores from the response
   const extractScores = (responseText) => {
     // Default scores in case we can't parse them
     let scores = {
       technical: 65,
       communication: 70,
       overall: 68,
-      satisfaction: 70, // Add satisfaction score
+      satisfaction: 70,
     };
 
     try {

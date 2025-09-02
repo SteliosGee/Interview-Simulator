@@ -8,12 +8,12 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # ==== OpenRouter Configuration ====
-MODEL = 'meta-llama/llama-3-70b-instruct'  # google/gemma-3-27b-it:free
+MODEL = 'meta-llama/llama-3-70b-instruct'
 
 HEADERS = {
     'Authorization': f'Bearer {OPENROUTER_API_KEY}',
     'Content-Type': 'application/json',
-    'HTTP-Referer': 'http://localhost:5000',  # Set this properly for production
+    'HTTP-Referer': 'http://localhost:5000',
     'X-Title': 'Interview Chatbot'
 }
 

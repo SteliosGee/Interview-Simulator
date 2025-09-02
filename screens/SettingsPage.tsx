@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Switch, ScrollView, Linking, TouchableOpacity, Image, Platform } from 'react-native';
 import { useTheme } from '../components/ThemeProvider';
 import { Card } from '../components/Card';
-// Conditionally import based on platform
 import YoutubePlayer from 'react-native-youtube-iframe';
-// You would need to install this for web
 import YouTube from 'react-youtube';
 
 export default function SettingsPage() {
