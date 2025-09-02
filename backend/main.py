@@ -8,7 +8,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # ==== OpenRouter Configuration ====
-MODEL = 'meta-llama/llama-3-70b-instruct'  # Or any other model from OpenRouter
+MODEL = 'meta-llama/llama-3-70b-instruct'  # google/gemma-3-27b-it:free
 
 HEADERS = {
     'Authorization': f'Bearer {OPENROUTER_API_KEY}',
